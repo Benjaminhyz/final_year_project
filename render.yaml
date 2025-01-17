@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: final-year-project
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn middleware_code:app
+    envVars:
+      - key: GOOGLE_API_KEY
+        value: "AIzaSyB5tLslxY1LtQg_aIXg5L9GuJrqPzJpxwY"
