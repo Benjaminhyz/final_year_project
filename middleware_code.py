@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
 import requests
+import os
 
 app = Flask(__name__)
 
@@ -53,10 +54,13 @@ def get_restaurants():
         return jsonify({"success": True, "data": results})
 
     except Exception as e:
-        print(f"Error: {e}")
+        # Log the error for debugging
+        app.logger.error(f"Error: {e}")
         return jsonify({"success": False, "message": "An error occurred while processing the request"}), 500
 
 
 # Run the Flask server
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    # Use Heroku's $PORT environment variable if available, otherwise default to 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=True)
