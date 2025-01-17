@@ -1,73 +1,50 @@
 from flask import Flask, request, jsonify
-import requests
 import os
 
+# Initialize Flask app
 app = Flask(__name__)
 
-# Replace this with your Google Maps API key
-GOOGLE_API_KEY = 'AIzaSyAg3jErF2EDOZnPoIHan27VAOr8KG3cI2o'
-
-
-@app.route('/')
+# Define the home route
+@app.route("/")
 def home():
-    """
-    Root route to verify the API is running.
-    """
     return "Welcome to the Restaurant Finder API!"
 
-
-@app.route('/get-restaurants', methods=['POST'])
+# Define the /get-restaurants POST endpoint
+@app.route("/get-restaurants", methods=["POST"])
 def get_restaurants():
     """
-    Endpoint to fetch restaurants based on user query and location.
+    Endpoint to simulate a restaurant search.
+    Accepts JSON input with query, location, and radius parameters.
     """
-    try:
-        # Extract user input from chatbot
-        user_input = request.json
-        query = user_input.get("query")  # e.g., 'halal food'
-        location = user_input.get("location")  # e.g., '1.3039,103.8318' (Orchard Road)
-        radius = user_input.get("radius", 5000)  # Search radius in meters (default is 5 km)
+    # Parse JSON data from the request
+    data = request.json
+    query = data.get("query")  # e.g., "halal food"
+    location = data.get("location")  # e.g., "1.3039,103.8318"
+    radius = data.get("radius", 5000)  # Default radius is 5000 meters
 
-        if not query or not location:
-            return jsonify({"success": False, "message": "Query and location are required"}), 400
+    # Mock response simulating restaurant results
+    response = {
+        "success": True,
+        "data": [
+            {
+                "name": "Mock Restaurant",
+                "address": "123 Example St.",
+                "rating": 4.5
+            },
+            {
+                "name": "Another Restaurant",
+                "address": "456 Another St.",
+                "rating": 4.0
+            }
+        ]
+    }
 
-        # Google Maps Places API endpoint
-        google_places_url = 'https://maps.googleapis.com/maps/api/place/textsearch/json'
+    # Return the response as JSON
+    return jsonify(response)
 
-        # Make the API call to Google Maps
-        response = requests.get(google_places_url, params={
-            "query": query,
-            "location": location,
-            "radius": radius,
-            "key": GOOGLE_API_KEY
-        })
-
-        data = response.json()
-
-        if response.status_code != 200 or "results" not in data:
-            return jsonify({"success": False, "message": "Failed to fetch data from Google Maps API"}), 500
-
-        # Extract restaurant details
-        results = []
-        for place in data.get("results", []):
-            results.append({
-                "name": place.get("name"),
-                "address": place.get("formatted_address"),
-                "rating": place.get("rating", "N/A"),
-                "opening_hours": place.get("opening_hours", {}).get("weekday_text", "No data available"),
-                "google_maps_link": f"https://www.google.com/maps/place/?q=place_id:{place.get('place_id')}"
-            })
-
-        # Return results to chatbot
-        return jsonify({"success": True, "data": results})
-
-    except Exception as e:
-        print(f"Error: {e}")
-        return jsonify({"success": False, "message": "An error occurred while processing the request"}), 500
-
-
-# Run the Flask server
-if __name__ == '__main__':
-    # Use the $PORT environment variable provided by Heroku
-    port = int(os.environ.get("PORT", 5000))  # Default to 5000 if no $PORT is set
-    app.run(debug=True, host='0.0.0.0', port=port)
+# Main entry point for running the Flask app
+if __name__ == "__main__":
+    # Get the PORT from the environment variable for Heroku
+    port = int(os.environ.get("PORT", 5000))
+    # Run the Flask app on all available network interfaces
+    app.run(host="0.0.0.0", port=port)
